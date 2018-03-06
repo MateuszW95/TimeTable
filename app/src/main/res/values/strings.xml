@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">TimeTable</string>
+    <string name="Monday">Poniedziałek</string>
+    <string name="Tuesday">Wtorek</string>
+    <string name="Wednesday">Środa</string>
+    <string name="Thursday">Czwartek</string>
+    <string name="Friday">Piątek</string>
+    <string name="Submit">Zatwierdź</string>
+    <string name="group_name">Wprowadź nazwę grupy</string>
+</resources>
