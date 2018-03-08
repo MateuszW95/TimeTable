@@ -18,7 +18,7 @@ import java.util.HashMap;
 
 public class DataDownloadTask extends AsyncTask<String,Void,Boolean>  {
 
-    Document doc;
+
     @Override
     protected Boolean doInBackground(String... strings)  {
         try {

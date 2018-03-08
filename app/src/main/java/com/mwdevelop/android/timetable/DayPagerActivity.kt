@@ -11,6 +11,7 @@ import android.view.View
 import android.widget.TextView
 import android.widget.Toast
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.activity_day_pager.*
 import java.io.BufferedReader
 import java.io.FileInputStream
@@ -20,11 +21,14 @@ import java.io.InputStreamReader
 import java.util.*
 import kotlin.collections.ArrayList
 
+@Suppress("UNREACHABLE_CODE")
 class DayPagerActivity : AppCompatActivity() {
 
     private lateinit var mViewPager: ViewPager
     private lateinit var mDays: ArrayList<Day>
     private val fileNameGroup="name"
+    private val DataFileName="DataFile"
+    private val EditDialog="Edit_Dialog"
 
     private lateinit var mDayNameTextView:TextView
     companion object {
@@ -45,25 +49,25 @@ class DayPagerActivity : AppCompatActivity() {
 
 
         //Informatyka I-go st sem.4 gr. dziekańska 2 lab.4
-        if(readNameGroup(fileNameGroup))
+        if(readNameGroup(fileNameGroup) && readDataFile(DataFileName))
         {
             try {
                 if(!object : DataDownloadTask() {}.execute(DataLab.get(applicationContext).mGroupName).get()) throw Exception("CONNECTION ERROR")
                 LL_data.visibility = View.GONE
-                mViewPager.visibility = View.VISIBLE
+                LL_list.visibility = View.VISIBLE
                 mDays = DataLab.get(this).mDays!!
             }
             catch (e:Exception)
             {
                 Toast.makeText(applicationContext,"Błąd pobierania danych", Toast.LENGTH_LONG).show()
                 LL_data.visibility=View.VISIBLE
-                mViewPager.visibility=View.GONE
+                LL_list.visibility=View.GONE
             }
         }
         else
         {
             LL_data.visibility=View.VISIBLE
-            mViewPager.visibility=View.GONE
+            LL_list.visibility=View.GONE
         }
         bt_enter.setOnClickListener(View.OnClickListener {
             if(!ET_data.text.isEmpty())
@@ -72,8 +76,9 @@ class DayPagerActivity : AppCompatActivity() {
                 try{
                     if(!object : DataDownloadTask() {}.execute(DataLab.get(applicationContext).mGroupName).get()) throw Exception("CONNECTION ERROR")
                     writeNameGroup("name",this)
+                    writeDataToFile(DataFileName)
                     LL_data.visibility=View.GONE
-                    mViewPager.visibility=View.VISIBLE
+                    LL_list.visibility=View.VISIBLE
                     mDays= DataLab.get(this).mDays!!
                     mViewPager.adapter.notifyDataSetChanged()
 
@@ -86,6 +91,25 @@ class DayPagerActivity : AppCompatActivity() {
 
         mDays= DataLab.get(this).mDays!!
 
+        groupNameSet.setOnClickListener(View.OnClickListener {
+
+            var menager: android.app.FragmentManager? =fragmentManager
+            var dialog=EditGroupNameFragment.newInstance(DataLab.get(applicationContext).mGroupName!!)
+            dialog.show(menager!!,EditDialog)
+        })
+
+        refresh_item.setOnClickListener(View.OnClickListener {
+            try{
+                if(!object : DataDownloadTask() {}.execute(DataLab.get(applicationContext).mGroupName).get()) throw Exception("CONNECTION ERROR")
+                writeDataToFile(DataFileName)
+                mDays= DataLab.get(this).mDays!!
+                mViewPager.adapter.notifyDataSetChanged()
+            }
+            catch(e:Exception)
+            {
+                Toast.makeText(this,"Błąd pobierania danych",Toast.LENGTH_LONG).show()
+            }
+        })
 
 
 
@@ -114,11 +138,41 @@ class DayPagerActivity : AppCompatActivity() {
         }
 
     }
-    fun writeDataToFile(fileName:String,data:ArrayList<Day>){
+    fun writeDataToFile(fileName:String){
        var gson=Gson()
-        var data_str=gson.toJson(data)
-        context!!.openFileOutput(fileName, Context.MODE_PRIVATE).use {
-            it.write(data_str.toByteArray())
+        var data_str=gson.toJson(DataLab.get(applicationContext).mDays)
+        try {
+            var fileOutputStream: FileOutputStream = openFileOutput(fileName, Context.MODE_PRIVATE)
+            fileOutputStream.write(data_str.toByteArray())
+            fileOutputStream.close()
+            Toast.makeText(applicationContext, "File saved", Toast.LENGTH_LONG).show()
+        }
+        catch (e:Exception){
+            e.printStackTrace()
+        }
+    }
+
+    fun readDataFile(fileName:String):Boolean{
+        var message:String?
+        try {
+            var fileInputStream: FileInputStream = openFileInput(fileName)
+            var inputStreamReader = InputStreamReader(fileInputStream)
+            val bufferedReader = BufferedReader(inputStreamReader)
+            var stringBuffer = StringBuffer()
+            message = bufferedReader.readLine()
+            while (message != null) {
+                stringBuffer.append(message)
+                message = bufferedReader.readLine()
+            }
+            var gson=Gson()
+            var type=object: TypeToken<ArrayList<Day>>(){}.type
+            var array:ArrayList<Day> =gson.fromJson(stringBuffer.toString()!!,object: TypeToken<ArrayList<Day>>(){}.type)
+            DataLab.get(applicationContext).mDays=array
+            return true
+        }
+        catch(e:Exception){
+            e.printStackTrace()
+            return false
         }
     }
 
