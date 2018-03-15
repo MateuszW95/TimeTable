@@ -1,13 +1,21 @@
 package com.mwdevelop.android.timetable
 
+import android.app.Activity
 import android.content.Context
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
 import android.support.v4.app.FragmentStatePagerAdapter
+import android.support.v4.view.PagerAdapter
 import android.support.v4.view.ViewPager
+import android.support.v7.app.AlertDialog
+import android.text.Editable
+import android.text.SpannableStringBuilder
+import android.view.LayoutInflater
 import android.view.View
+import android.widget.CheckBox
+import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import com.google.gson.Gson
@@ -29,6 +37,7 @@ class DayPagerActivity : AppCompatActivity() {
     private val fileNameGroup="name"
     private val DataFileName="DataFile"
     private val EditDialog="Edit_Dialog"
+    private var REQUEST_CODE=12
 
     private lateinit var mDayNameTextView:TextView
     companion object {
@@ -93,9 +102,47 @@ class DayPagerActivity : AppCompatActivity() {
 
         groupNameSet.setOnClickListener(View.OnClickListener {
 
-            var menager: android.app.FragmentManager? =fragmentManager
-            var dialog=EditGroupNameFragment.newInstance(DataLab.get(applicationContext).mGroupName!!)
-            dialog.show(menager!!,EditDialog)
+//            var sfm=fragmentManager.beginTransaction()
+//            var prev=fragmentManager.findFragmentByTag(EditDialog)
+//            var dialog=EditGroupNameFragment.newInstance(DataLab.get(applicationContext).mGroupName!!)
+//            if(prev!=null){
+//                sfm.remove(prev)
+//            }
+//            sfm.addToBackStack(null)
+//            dialog.show(sfm!!,EditDialog)
+            val v:View= layoutInflater.inflate(R.layout.dialogedit,null)
+            val CBrefresh=v.findViewById(R.id.CB_refresh) as CheckBox
+            val ETname=v.findViewById(R.id.et_name) as EditText
+            ETname.text=SpannableStringBuilder(DataLab.get(applicationContext).mGroupName)
+            var dialog:AlertDialog= AlertDialog.Builder(DayPagerFragment@this,R.style.MyDialogTheme).setTitle(R.string.editGroup_name).
+                    setView(v).
+                    setPositiveButton(android.R.string.ok, { _, _ ->
+                        if(ETname.text.isEmpty()){
+                            Toast.makeText(this, "Uzupełnij pole", Toast.LENGTH_LONG).show()
+
+                        }
+                        else {
+                            DataLab.get(applicationContext).mGroupName = ETname.text.toString()
+                            if (CBrefresh.isChecked) {
+                                try {
+                                    if (!object : DataDownloadTask() {}.execute(DataLab.get(applicationContext).mGroupName).get()) throw Exception("CONNECTION ERROR")
+                                    writeNameGroup("name", this)
+                                    writeDataToFile(DataFileName)
+                                    mDays= DataLab.get(this).mDays!!
+                                    mViewPager.adapter.notifyDataSetChanged()
+
+
+                                } catch (e: Exception) {
+                                    Toast.makeText(this, "Błąd pobierania danych", Toast.LENGTH_LONG).show()
+                                }
+                            }
+                        }
+
+                    }).
+                    setNegativeButton(android.R.string.cancel,null).
+                    create()
+            dialog.show()
+
         })
 
         refresh_item.setOnClickListener(View.OnClickListener {
@@ -125,6 +172,10 @@ class DayPagerActivity : AppCompatActivity() {
 
             override fun getCount(): Int {
                 return mDays.size
+            }
+
+            override fun getItemPosition(`object`: Any?): Int {
+            return PagerAdapter.POSITION_NONE
             }
 
         }

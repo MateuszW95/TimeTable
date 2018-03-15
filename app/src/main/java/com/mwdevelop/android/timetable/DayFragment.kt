@@ -1,7 +1,9 @@
 package com.mwdevelop.android.timetable
 
+import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
+
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
@@ -32,7 +34,7 @@ class DayFragment:Fragment(){
                 return fragment
             }
         }
-     private lateinit var mDay:Day
+     protected lateinit var mDay:Day
     override fun onResume() {
         super.onResume()
         updateUI()
@@ -67,7 +69,7 @@ class DayFragment:Fragment(){
         return v
     }
 
-    private class SubjectHolder(inflater: LayoutInflater?, parent: ViewGroup):RecyclerView.ViewHolder(inflater!!.inflate(R.layout.list_item_subject,parent,false)),View.OnClickListener {
+    private inner class SubjectHolder(inflater: LayoutInflater?, parent: ViewGroup):RecyclerView.ViewHolder(inflater!!.inflate(R.layout.list_item_subject,parent,false)),View.OnClickListener {
         private lateinit var mNameTextView: TextView
         private lateinit var mLecturerTextView: TextView
         private lateinit var mRoomTextView: TextView
@@ -81,9 +83,11 @@ class DayFragment:Fragment(){
             mRoomTextView=itemView.findViewById(R.id.TV_roomName)
             mBeginTextView=itemView.findViewById(R.id.TV_startTime)
             mEndTextView=itemView.findViewById(R.id.TV_endTime)
+            itemView.setOnClickListener(this)
         }
         override fun onClick(v: View?) {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            var intent=SubjectActivity.getIntetnt(v!!.context,mDay.id,mSubject.id)
+            startActivity(intent)
         }
 
 
@@ -99,7 +103,7 @@ class DayFragment:Fragment(){
         }
     }
 
-    private  class SubjectsAdapter(var mSubjects:ArrayList<Subject>): RecyclerView.Adapter<SubjectHolder>() {
+    private inner class SubjectsAdapter(var mSubjects:ArrayList<Subject>): RecyclerView.Adapter<SubjectHolder>() {
 
 
 

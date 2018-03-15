@@ -10,4 +10,7 @@
     <string name="editGroup_name">Nazwa grupy</string>
     <string name="refresh">odśwież</string>
     <string name="options">Opcje</string>
+    <string name="lecturer">Prowadzący</string>
+    <string name="subject_name">Nazwa</string>
+    <string name="s_room">Sala</string>
 </resources>

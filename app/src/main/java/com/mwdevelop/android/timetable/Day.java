@@ -36,4 +36,13 @@ public class Day {
     public UUID getId() {
         return id;
     }
+
+    public Subject getSubject(UUID id){
+        Subject tmp;
+        for (Subject s:subjectArrayList) {
+            if(s.getId().equals(id)) return s;
+
+        }
+        return null;
+    }
 }
